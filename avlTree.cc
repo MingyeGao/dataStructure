@@ -1,5 +1,5 @@
-///* insert is ok
-///* To Do : fix remove
+///* finished
+///* 
 
 #include <assert.h>
 #include <time.h>
@@ -161,6 +161,7 @@ bool nodeInsert(Node **root, int x) {
 
 }
 
+
 bool nodeRemove(Node **root, int x) {
 	if ((*root) == nullptr) return false;
 
@@ -170,33 +171,59 @@ bool nodeRemove(Node **root, int x) {
 			return true;
 		}
 		if ((*root)->lchild == nullptr) {
+			Node *toDelete = (*root);
 			(*root) = (*root)->rchild;
+			delete toDelete;
 			return true;
 		}
 		if ((*root)->rchild == nullptr) {
+			Node *toDelete = (*root);
 			(*root) = (*root)->lchild;
+			delete toDelete;
 			return true;
 		}
 		//*待删除节点左右子节点均存在，找后继
 		Node *r = (*root)->rchild;
-		Node *p = r->lchild;
-		if (p == nullptr) {
-			(*root)->rchild = nullptr;
+		Node *rl = r->lchild;
+		if (rl == nullptr) {
+			(*root)->rchild = r->rchild;
+			(*root)->bf++;
 			(*root)->val = r->val;
 			delete r;
-			return true;
+			
+			if ((*root)->bf == 2) {
+				Node *l = (*root)->lchild;
+				if (l->bf != 0) {
+					rightBalance(root);
+					return true;
+				}
+				else {
+					(*root)->bf = 1;
+					l->bf = -1;
+					rightRotate(root);
+					return false;
+				}
+			}
+			else if((*root)->bf == 1){
+				return false;
+			}
+			else {//* (*root)->bf == 0
+				return true;
+			}
 		}
 
 		Node *prev = r;
-		Node *current = p;
+		Node *current = rl;
 		while (current->lchild != nullptr) {
 			prev = current;
 			current = current->lchild;
 		}
-		(*root)->val = current->val;
-		delete current;
-		prev->lchild = nullptr;
-		return true;
+
+		Node *prevRootPointer = *root;
+		int val = current->val;
+		bool ret = nodeRemove(root, current->val);
+		prevRootPointer->val = val;
+		return ret;
 	}
 	if ((*root)->val > x) {
 		bool ret = nodeRemove(&(*root)->lchild, x);
@@ -215,13 +242,13 @@ bool nodeRemove(Node **root, int x) {
 					(*root)->bf = -1;
 					r->bf = 1;
 					leftRotate(root);
+					return false;
 
 				}
 				else {
 					leftBalance(root);
+					return true;
 				}
-				
-				return false;
 			}
 		}
 	}
@@ -242,12 +269,12 @@ bool nodeRemove(Node **root, int x) {
 					(*root)->bf = 1;
 					l->bf = -1;
 					rightRotate(root);
+					return false;
 				}
 				else {
 					rightBalance(root);
+					return true;
 				}
-				
-				return false;
 			}
 		}
 	}
@@ -286,6 +313,10 @@ int isAvlTree(Node *root) {
 	}
 
 	int result = result1 - result2;
+	if (result != root->bf) {
+		return -1;
+	}
+
 	if (result >= -1 && result <= 1) {
 		return max(result1, result2) + 1;
 	}
@@ -309,31 +340,26 @@ void preOrder(Node *root) {
 int main() {
 	avlTree *tree = new avlTree();
 	srand(time(0));
+	int testNum = 5000;
 
 	vector<int> input;
-	//vector<int> input({ 26423, 3282, 966, 1871, 9337, 29403, 32391, 32188, 17759, 23267, 24706, 6867 });
 
-	for (int i = 0; i < 10; ++i) {
+	for (int i = 0; i < testNum; ++i) {
 		int tmp = rand();
 		tree->insert(tmp);
 		input.push_back(tmp);
-		preOrder(tree->root);
-		printf("\n");
 		int ret = isAvlTree(tree->root);
 		assert(ret > 0);
 	}
 
 	int ret = isAvlTree(tree->root);
 	assert(ret > 0);
-	//printf("ret=%d\n", ret);
 
 
 
-	for (int i = 0; i < 10; ++i) {
+	for (int i = testNum-1; i >=0; --i) {
 		tree->remove(input[i]);
 		ret = isAvlTree(tree->root);
-		preOrder(tree->root);
-		printf("\n");
 		assert(ret >= 0);
 	}
 
