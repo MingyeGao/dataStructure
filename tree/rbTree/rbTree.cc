@@ -1,6 +1,7 @@
 #include <assert.h>
 
-#include <cstdio>
+#include <iostream>
+#include <cstdlib>
 
 using namespace std;
 
@@ -11,8 +12,10 @@ class Node;
 
 class Node{
 public:
-    Node(){};
+    Node():lchild(nullptr), rchild(nullptr), p(nullptr){};
     Node(int a):val(a), lchild(nullptr), rchild(nullptr), p(nullptr), color(red){}
+    Node(int a, Node *nil):
+      val(a), lchild(nil), rchild(nil), p(nil), color(red){}
     int val;
     Node *lchild;
     Node *rchild;
@@ -31,81 +34,82 @@ public:
 class rbTree{
 public:
     rbTree(){ 
-        sudoHead = new Node();
-        sudoHead->color = black;
+        nil = new Node();
+        nil->color = black;
+        nil->lchild = nil;
+        nil->rchild = nil;
+        nil->val = -1;
     }
-    Node *sudoHead;
-    ~rbTree(){
-        delete sudoHead;
-    }
+    Node *nil;
+    ~rbTree(){ }
 
     void insert(int x);
     void insertFixup(Node *node);
     bool remove(int x);
-    void removeFixup(Node *node);
+    void removeFixup(Node *node);\
+    Node *root() {return nil->lchild;}
 };
 
-void leftRotate(Node **node){
-    Node *p = (*node)->p;
-    Node *r = (*node)->rchild;
 
-    (*node)->rchild = r->lchild;
-    r->lchild->p = (*node)->rchild;
+void Rotate(Node *p, Node *n){
+    assert(n == p->lchild || n == p->rchild);
 
-    r->lchild = (*node);
-    (*node)->p = r;
+    Node *g = p->p;
+    if(p == g->lchild){
+        g->setLchild(n);
+    }
+    else{
+        g->setRchild(n);
+    }
 
-    (*node) = r;
-    r->p = p;
-}
+    if(n == p->lchild){
+        p->setLchild(n->rchild);
+        n->setRchild(p);
 
-void rightRotate(Node **node){
-    Node *l = (*node)->lchild;
-    Node *p = (*node)->p;
-
-    (*node)->lchild = l->rchild;
-    l->rchild->p = (*node);
-
-    l->rchild = (*node);
-    (*node)->p = l;
-
-    (*node) = l;
-    l->p = p;
+    }
+    else{//n == p->rchild
+        p->setRchild(n->lchild);
+        n->setLchild(p);
+    }
 }
 
 void rbTree::insert(int x){
-    if(sudoHead->lchild == nullptr){
-        Node *newNode = new Node(x);
-        sudoHead->setLchild(newNode);
+    if(nil->lchild == nil){
+        Node *newNode = new Node(x, nil);
+        nil->setLchild(newNode);
+        newNode->color = black;
         return;
     }
 
-    Node *currentNode = sudoHead->lchild;
+    Node *currentNode = root();
     Node *prevNode;
     Node *newNode;
     bool insertFlag = false;
 
     while(1){
-        if(currentNode == nullptr){
-            newNode = new Node(x);
-            if(currentNode == prevNode->lchild){
-                prevNode->setLchild(newNode);
-            }
-            else{
-                prevNode->setRchild(newNode);
-            }
-            insertFlag = true;
-            break;
-        }
 
         if(currentNode->val == x) return;
         else if(x < currentNode->val){
-            prevNode = currentNode;
-            currentNode = currentNode->lchild;
+            if(currentNode->lchild == nil){
+                newNode = new Node(x, nil);
+                currentNode->setLchild(newNode);
+                insertFlag = true;
+                break;
+            }
+            else{
+                currentNode = currentNode->lchild;
+            }
         }
         else{
-            prevNode = currentNode;
-            currentNode = currentNode->rchild;
+            if(currentNode->rchild == nil){
+                newNode = new Node(x, nil);
+                currentNode->setRchild(newNode);
+                insertFlag = true;
+                break;
+            }
+            else{
+                currentNode = currentNode->rchild;
+            }
         }
     }
 
@@ -118,17 +122,12 @@ void rbTree::insert(int x){
 
 void rbTree::insertFixup(Node *node){
     assert(node->color == red);
-
-    
-
-    Node *p;
-    Node *g;
-    Node *u;
+    Node *p, *g, *u;
 
     while(1){
-        
-        if(p->color == black) return;
+        if(node == root()) break;
         p = node->p;
+        if(p->color == black) return;
         g = p->p;
 
         if(p == g->lchild){
@@ -136,15 +135,29 @@ void rbTree::insertFixup(Node *node){
             if(u->color == red){
                 u->color = black;
                 p->color = black;
+                if(g == root()){
+                    break;
+                }
+                g->color = red;
                 node = g;
                 continue;
             }
             else{
                 if(node == p->rchild){
-                    leftRotate(&p);
+                    node->color = black;
+                    p->color = red;
+                    g->color = red;
+                    Rotate(p, node);
+                    Rotate(g, node);
+                    break;
                 }
-                rightRotate(&p);
-                break;
+                else{
+                    node->color = red;
+                    p->color = black;
+                    g->color = red;
+                    Rotate(g, p);
+                    break;
+                }
             }
         }
         else{
@@ -152,15 +165,29 @@ void rbTree::insertFixup(Node *node){
             if(u->color == red){
                 u->color = black;
                 p->color = black;
+                if(g == root()){
+                    break;
+                }
+                g->color = red;
                 node = g;
                 continue;
             }
             else{
                 if(node == p->lchild){
-                    rightRotate(&p);
+                    node->color = black;
+                    p->color = red;
+                    g->color = red;
+                    Rotate(p, node);
+                    Rotate(g, node);
+                    break;
                 }
-                leftRotate(&p);
-                break;
+                else{
+                    node->color = red;
+                    p->color = black;
+                    g->color = red;
+                    Rotate(g, p);
+                    break;
+                }
             }
         }
     }
@@ -169,31 +196,64 @@ void rbTree::insertFixup(Node *node){
 
 }
 
-int nodeCheck(Node *node){
-    if(!node){
+int nodeCheck(Node *node, Node *nil){
+    if(node == nil){
         return 0;
     }
     if(node->color == red){
-        if(node->lchild && node->lchild->color == red){
+        if(node->lchild != nil && node->lchild->color == red){
+            cout<<"color error\n";
             return -1;
         }
-        if(node->rchild && node->rchild->color == red){
+        if(node->rchild != nil && node->rchild->color == red){
+            cout<<"color error\n";
             return -1;
         }
     }
 
-    int lchildBlackNum = nodeCheck(node->lchild);
-    if(lchildBlackNum == -1) return -1;
-    int rchildBlackNum = nodeCheck(node->rchild);
-    if(rchildBlackNum == -1) return -1;
+    int lchildBlackNum = nodeCheck(node->lchild, nil);
+    if(lchildBlackNum == -1) {
+        cout<<"black height error\n";
+        return -1;
+    }
+    int rchildBlackNum = nodeCheck(node->rchild, nil);
+    if(rchildBlackNum == -1) {
+        cout<<"black height error\n";
+        return -1;
+    }
 
-    if(lchildBlackNum != rchildBlackNum) return -1;
+    if(lchildBlackNum != rchildBlackNum){
+        cout<<"black height doesn't match\n";
+        return -1;
+    } 
 
     if(node->color == red){ return lchildBlackNum;}
     else { return lchildBlackNum + 1;}
 }
 
+
+void preOrder(Node *node, Node *nil);
+
 int main(int argc, char *argv[]){
-    
+    int num = 500;
+    rbTree *t = new rbTree();
+    srand(10);
+    for(int i = 0; i < num; ++i){
+        int tmp = random()%500;
+        t->insert(tmp);
+        preOrder(t->root(), t->nil);
+        int ret = nodeCheck(t->root(), t->nil);
+        assert(ret >= 0);
+        cout<<"black height is "<<ret<<endl;
+    }
 }
+
+void preOrder(Node *node, Node *nil){
+    if(node == nil) return;
+    cout<<node->val<<",";
+    preOrder(node->lchild, nil);
+    preOrder(node->rchild, nil);
+}
+
+
 
