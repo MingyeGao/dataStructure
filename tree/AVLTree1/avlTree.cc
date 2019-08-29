@@ -182,7 +182,7 @@ bool nodeRemove(Node **root, int x) {
 			delete toDelete;
 			return true;
 		}
-		//*´ıÉ¾³ı½Úµã×óÓÒ×Ó½Úµã¾ù´æÔÚ£¬ÕÒºó¼Ì
+		//*ï¿½ï¿½É¾ï¿½ï¿½ï¿½Úµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó½Úµï¿½ï¿½ï¿½ï¿½ï¿½Ú£ï¿½ï¿½Òºï¿½ï¿½
 		Node *r = (*root)->rchild;
 		Node *rl = r->lchild;
 		if (rl == nullptr) {
@@ -292,8 +292,8 @@ bool avlTree::remove(int x) {
 }
 
 /*
-* @param root: ¸ù½Úµã
-* @return : Èç¹ûrootÊÇavlÊ÷£¬·µ»ØÊ÷µÄ¸ß¶È£»Èç¹û²»ÊÇ£¬Ôò·µ»Ø-1£»
+* @param root: ï¿½ï¿½ï¿½Úµï¿½
+* @return : ï¿½ï¿½ï¿½rootï¿½ï¿½avlï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ß¶È£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç£ï¿½ï¿½ò·µ»ï¿½-1ï¿½ï¿½
 */
 int isAvlTree(Node *root) {
 	if (root == nullptr) return 0;
@@ -363,5 +363,5 @@ int main() {
 		assert(ret >= 0);
 	}
 
-	getchar();
+	//getchar();
 }
